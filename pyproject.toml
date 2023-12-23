@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyproxmox-ve"
-version = "0.1.0a0"
+version = "0.1.0a1"
 description = "Async wrapper (aiohttp) for Proxmox VE API"
 authors = ["Brandon Spendlove <brandonspendlove@gmail.com>"]
 license = "Apache Version 2.0"
