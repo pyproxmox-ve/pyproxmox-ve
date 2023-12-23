@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "pyproxmox-ve"
+version = "0.1.0a0"
+description = "Async wrapper (aiohttp) for Proxmox VE API"
+authors = ["Brandon Spendlove <brandonspendlove@gmail.com>"]
+license = "Apache Version 2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+aiohttp = "^3.9.1"
+pydantic = "^2.5.3"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.3"
+ruff = "^0.1.9"
+pytest-aiohttp = "^1.0.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
