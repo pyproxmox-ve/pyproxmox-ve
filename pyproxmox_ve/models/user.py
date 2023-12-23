@@ -1,8 +1,7 @@
-from typing import Optional, Any
+from typing import Optional
 from typing_extensions import Annotated
 from pydantic import Field
 from pyproxmox_ve.models.base import ProxmoxBaseModel
-from pyproxmox_ve.models.enums import ConsoleEnum
 
 
 class UserToken(ProxmoxBaseModel):
@@ -12,7 +11,7 @@ class UserToken(ProxmoxBaseModel):
     tokenid: Optional[Annotated[str, Field(pattern="(^:[A-Za-z][A-Za-z0-9\\.\\-_]+)")]]
 
 
-class User(ProxmoxBaseModel):
+class UserBase(ProxmoxBaseModel):
     userid: str
     comment: Optional[str] = None
     email: Optional[str] = None
@@ -22,6 +21,13 @@ class User(ProxmoxBaseModel):
     groups: Optional[str] = None
     keys: Optional[list[str]] = []
     lastname: Optional[str] = None
+
+
+class UserCreate(UserBase):
+    password: Optional[str] = None
+
+
+class User(UserBase):
     realm_type: Optional[str] = None
     tfa_locked_until: Optional[int] = None
     tokens: Optional[list[dict]] = []

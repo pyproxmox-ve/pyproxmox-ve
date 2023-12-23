@@ -1,15 +1,16 @@
+from __future__ import annotations
 from typing_extensions import TYPE_CHECKING
-from pyproxmox_ve.models.version import Version
+from pyproxmox_ve.resources.base import BaseResourceAPI
 
 if TYPE_CHECKING:
-    from pyproxmox_ve.api import ProxmoxVEAPI
+    from pyproxmox_ve.models.version import Version
 
 
-class VersionAPI:
-    def __init__(self, api: "ProxmoxVEAPI") -> None:
-        self.api = api
-
-    async def get_version(self) -> Version:
-        return await self.api.query_with_model(
-            model=Version, method="GET", endpoint=f"/version", data_key="data"
+class VersionAPI(BaseResourceAPI):
+    async def get_version(self) -> dict | Version:
+        return await self.api.query(
+            module_model=("pyproxmox_ve.models.version", "Version"),
+            method="GET",
+            endpoint="/version",
+            data_key="data",
         )

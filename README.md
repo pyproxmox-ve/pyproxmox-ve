@@ -7,7 +7,9 @@ A simple python module to interact with the Proxmox Virtual Environment (PVE) HT
 ## Installation
 
 ```
-pip install pyproxmox-ve
+pip install pyproxmox-ve[pydantic] # For Pydantic v2 support
+
+pip install pyproxmox-ve # No Pydantic support
 ```
 
 ## Pydantic
