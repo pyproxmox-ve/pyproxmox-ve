@@ -13,7 +13,6 @@ Please note we have a code of conduct and it's simply 1 rule, don't be a dickhea
 - List comprehensions should always be used where possible unless the code is too ugly and readable, that is for you and the reviewer to agree with :-)
 
 # Tests
-to-do
 
 # Test Infrastructure
 to-do

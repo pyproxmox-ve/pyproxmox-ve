@@ -45,13 +45,6 @@ def pytest_addoption(parser):
         help="API Token for ProxmoxVE API",
         default="0d06e68c-930c-4d5f-bad5-9c18de0d85bf",
     )
-    parser.addoption(
-        "--use-pydantic",
-        action="store_true",
-        dest="use_pydantic",
-        help="Use Pydantic to validate input and output when interacting with the ProxmoxVE API",
-        default=False,
-    )
 
 
 @pytest.fixture
@@ -70,7 +63,6 @@ def proxmox(event_loop, request: FixtureRequest) -> ProxmoxVEAPI:
     realm = request.config.getoption("realm")
     api_token_id = request.config.getoption("api_token_id")
     api_token = request.config.getoption("api_token")
-    use_pydantic = request.config.getoption("use_pydantic")
 
     async def _make_api_obj():
         return ProxmoxVEAPI(
@@ -79,7 +71,7 @@ def proxmox(event_loop, request: FixtureRequest) -> ProxmoxVEAPI:
             realm=realm,
             api_token_id=api_token_id,
             api_token=api_token,
-            use_pydantic=use_pydantic,
+            use_pydantic=True,
         )
 
     api = event_loop.run_until_complete(_make_api_obj())

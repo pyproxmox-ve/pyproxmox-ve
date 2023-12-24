@@ -32,18 +32,18 @@ class ProxmoxVEAPI:
         api.nodes.qemu.firewall.get_qemu_firewall(node_id=1, qemu_id=2, id=3)
 
     Args:
-        url:                ProxmoxVE API Url (eg. https://localhost:8086)
-        username:           Username to authenticate with
-        realm:              Realm to authenticate with
-        api_token_id:       API Token ID to authenticate with
-        api_token:          API Token to authenticate with
-        api_version:        API Version (only `api2` is currently supported)
-        api_type:           API Type (only `json` is currently supported)
-        ssl_context:        SSL Context object to pass to the aiohttp session
-        connector:          Connector object to pass to the aiohttp session (only `TCPConnector` is currently supported)
-        session:            ClientSession object to pass if you want to override anything
-        use_pydantic:       Use the Pydantic library for data validation and accessing data via Python objects
-        kwargs:             kwargs are passed to the ClientSession that is automatically created if `session` is not used
+        url:            ProxmoxVE API Url (eg. https://localhost:8086)
+        username:       Username to authenticate with
+        realm:          Realm to authenticate with
+        api_token_id:   API Token ID to authenticate with
+        api_token:      API Token to authenticate with
+        api_version:    API Version (only `api2` is currently supported)
+        api_type:       API Type (only `json` is currently supported)
+        ssl_context:    SSL Context object to pass to the aiohttp session
+        connector:      Connector object to pass to the aiohttp session (only `TCPConnector` is currently supported)
+        session:        ClientSession object to pass if you want to override anything
+        use_pydantic:   Use the Pydantic library for data validation and accessing data via Python objects
+        kwargs:         kwargs are passed to the ClientSession that is automatically created if `session` is not used
     """
 
     def __init__(
@@ -129,30 +129,112 @@ class ProxmoxVEAPI:
         if self.session:
             await self.session.close()
 
-    async def post(self, endpoint: str, **kwargs) -> ClientResponse:
-        """aiohttp poor implementation of base_url requires us to build the path endpoint on every API call, been going on since 2022, pretty awful..."""
-        return await self.session.post(
-            url=f"/{self.api_version}/{self.api_type}" + endpoint, **kwargs
-        )
+    async def http_request(
+        self,
+        endpoint: str,
+        method: str,
+        data: dict = None,
+        data_key: str = "",
+        **kwargs,
+    ) -> dict | None:
+        """aiohttp request shorthand function to handle simple logic
 
-    async def get(self, endpoint: str, **kwargs) -> ClientResponse:
-        """aiohttp poor implementation of base_url requires us to build the path endpoint on every API call, been going on since 2022, pretty awful..."""
-        return await self.session.get(
-            url=f"/{self.api_version}/{self.api_type}" + endpoint,
+        Args:
+            endpoint:   API Endpoint
+            method:     HTTP Method (GET, POST, PUT, DELETE)
+            data_key:   nested key to export info if present
+        """
+        ctx = None
+        match method.upper():
+            case "GET":
+                ctx = self.session.get
+            case "POST":
+                ctx = self.session.post
+            case "PUT":
+                ctx = self.session.put
+            case "DELETE":
+                ctx = self.session.delete
+            case _:
+                raise KeyError(f"Method `{method}` is not valid")
+
+        r = await ctx(
+            url=f"/{self.api_version}/{self.api_type}" + endpoint, data=data, **kwargs
+        )
+        if not r.ok:
+            r.raise_for_status()
+
+        data = await r.json()
+        if data_key:
+            data = data.get(data_key)
+
+        return data
+
+    async def delete(self, endpoint: str, **kwargs) -> dict | None:
+        """Delete a resource on the Proxmox VE API.
+
+        Args:
+            endpoint:   API Endpoint
+        """
+        return await self.http_request(endpoint=endpoint, method="DELETE", **kwargs)
+
+    # update() and create() functions seem like its just duplicated code, but in the event we need to change any logic
+    # for one of the operations, I've separated the code to allow flexibility in the future otherwise it could be
+    # considered a very major breaking change
+    async def update(
+        self,
+        endpoint: str,
+        obj_in: dict | ProxmoxBaseModel = None,
+        module_model: tuple[str, str] = None,
+        data_key: str = "",
+        validate_response: bool = False,
+        response_model: tuple[str, str] = None,
+        **kwargs,
+    ) -> ProxmoxBaseModel | dict | None:
+        """Update a resource on the Proxmox VE API. As of PVE v8.1, most if not all PUT endpoints
+        return null, however when data is returned you can pass a Pydantic model to validate the response
+        body if validate_response is set to True. It also appears that the PUT response isn't the new updated
+        object but the old object before the update.
+
+        Args:
+            endpoint:           API Endpoint
+            obj_in:             Resource
+            data_key:           Proxmox API typically returns everything in 'data' key, this is
+                used to extract the relevant data directly from the ClientResponse
+            module_model:       Path to module and model to dynamically load if using Pydantic validation library
+            validate_response:  Validate the response using Pydantic
+            response_model:     Path to module and model to dynamically validate the respose using Pydantic library
+                if this model is the same as the original model to update the object, leave this blank and we will
+                automatically use the `module_model` to validate the response.
+        """
+        data = None
+        if obj_in:
+            data = self._normalize_data(
+                obj_in=obj_in,
+                module_model=module_model,
+                exclude_unset=True,  # Exclude unset to prevent default values updating unset values
+            )
+
+        r_data = await self.http_request(
+            endpoint=endpoint,
+            method="PUT",
+            data=data,
+            data_key=data_key,
             **kwargs,
-        )
+        )  # data will automatically set application/x-www-form-urlencoded which Proxmox API is expecting
 
-    async def put(self, endpoint: str, **kwargs) -> ClientResponse:
-        """aiohttp poor implementation of base_url requires us to build the path endpoint on every API call, been going on since 2022, pretty awful..."""
-        return await self.session.put(
-            url=f"/{self.api_version}/{self.api_type}" + endpoint, **kwargs
-        )
+        # If Pydantic is used, we can validate the response returned back to the user,
+        # we can either pass in a separate model using `response_model`, otherwise if this is empty we assume
+        # the same model passed to update the data can be used to validate the response.
+        # Be careful using the same data model to validate the response as it could be a unique field required
+        # when creating the resource, but is never returned in the object back from the API
+        if self.use_pydantic:
+            if validate_response:
+                if not response_model:
+                    response_model = module_model  # Use same Model that was used to update, to validate response
+                validation_model = self._get_pydantic_model(*response_model)
+                r_data = self._model_validate(obj_in=r_data, model=validation_model)
 
-    async def delete(self, endpoint: str, **kwargs) -> ClientResponse:
-        """aiohttp poor implementation of base_url requires us to build the path endpoint on every API call, been going on since 2022, pretty awful..."""
-        return await self.session.delete(
-            url=f"/{self.api_version}/{self.api_type}" + endpoint, **kwargs
-        )
+        return r_data
 
     async def create(
         self,
@@ -160,48 +242,50 @@ class ProxmoxVEAPI:
         obj_in: dict | ProxmoxBaseModel,
         module_model: tuple[str, str] = None,
         data_key: str = "",
+        validate_response: bool = False,
+        response_model: tuple[str, str] = None,
         **kwargs,
     ) -> ProxmoxBaseModel | dict | None:
-        """Create a resource on the Proxmox VE API. As of PVE v8.1, most if not all POST
-        endpoints return null.
+        """Create a resource on the Proxmox VE API. As of PVE v8.1, most if not all POST endpoints
+        return null, however when data is returned you can pass a Pydantic model to validate the response
+        body if validate_response is set to True.
 
         Args:
-            endpoint:   API Endpoint
-            data_key:       Proxmox API typically returns everything in 'data' key, this is
+            endpoint:           API Endpoint
+            obj_in:             Resource
+            data_key:           Proxmox API typically returns everything in 'data' key, this is
                 used to extract the relevant data directly from the ClientResponse
-            module_model:   Path to module and model to dynamically load if using Pydantic validation library
+            module_model:       Path to module and model to dynamically load if using Pydantic validation library
+            validate_response:  Validate the response using Pydantic
+            response_model:     Path to module and model to dynamically validate the respose using Pydantic library
+                if this model is the same as the original model to create the object, leave this blank and we will
+                automatically use the `module_model` to validate the response.
         """
-        if self.use_pydantic:
-            pydantic_model = self._get_pydantic_model(*module_model)
-
-            # Check if the model has already been validated otherwise manually validate the data against the Pydantic model
-            if isinstance(obj_in, pydantic_model):
-                obj = obj_in
-            elif isinstance(obj_in, (list, dict)):
-                obj = self._model_validate(obj_in=obj_in, model=pydantic_model)
-            else:
-                raise TypeError
-
-            data = self._model_dump(obj_in=obj, model=pydantic_model)
-        else:
-            data = json.dumps(obj_in)
-
-        r = await self.post(
-            endpoint=endpoint, data=data, **kwargs
+        data = self._normalize_data(obj_in=obj_in, module_model=module_model)
+        r_data = await self.http_request(
+            endpoint=endpoint,
+            method="POST",
+            data=data,
+            data_key=data_key,
+            **kwargs,
         )  # data will automatically set application/x-www-form-urlencoded which Proxmox API is expecting
 
-        if not r.ok:
-            r.raise_for_status()
-
-        r_data = await r.json()
-        if data_key:
-            return r_data.get(data_key)
+        # If Pydantic is used, we can validate the response returned back to the user,
+        # we can either pass in a separate model using `response_model`, otherwise if this is empty we assume
+        # the same model passed to update the data can be used to validate the response.
+        # Be careful using the same data model to validate the response as it could be a unique field required
+        # when creating the resource, but is never returned in the object back from the API
+        if self.use_pydantic:
+            if validate_response:
+                if not response_model:
+                    response_model = module_model  # Use same Model that was used to create, to validate response
+                validation_model = self._get_pydantic_model(*response_model)
+                r_data = self._model_validate(obj_in=r_data, model=validation_model)
 
         return r_data
 
     async def query(
         self,
-        method: str,
         endpoint: str,
         data_key: str = "data",
         module_model: tuple[str, str] = None,
@@ -214,28 +298,9 @@ class ProxmoxVEAPI:
             method:         GET, POST, PUT or DELETE
             endpoint:       API Endpoint
             data_key:       This is used to extract the relevant data directly from the ClientResponse body
-            module_model:   Path to module and model to dynamically load if using Pydantic validation library
+            module_model:   Path to module and model to dynamically load if using Pydantic library
         """
-        match method.upper():
-            case "GET":
-                m = self.get
-            case "POST":
-                m = self.post
-            case "PUT":
-                m = self.put
-            case "DELETE":
-                m = self.delete
-            case _:
-                raise KeyError(f"Method `{method}` is not valid")
-
-        r = await m(endpoint=endpoint, **kwargs)
-        if not r.ok:
-            r.raise_for_status()
-
-        data = await r.json()
-
-        if data_key:
-            data = data.get(data_key)
+        data = await self.http_request(endpoint=endpoint, data_key=data_key, **kwargs)
 
         # Most PVE endpoints return null if it doesn't exist, so this logic should be handled by each function
         # if its expecting some returned data.
@@ -254,8 +319,8 @@ class ProxmoxVEAPI:
         """Attempts to extract JSON from a response and check for various root keys exist in the body.
 
         Args:
-            response:       ClientResponse object
-            root_keys:      List of keys to check in the initial JSON body
+            response:   ClientResponse object
+            root_keys:  List of keys to check in the initial JSON body
         """
         try:
             data = await response.json()
@@ -270,7 +335,8 @@ class ProxmoxVEAPI:
         return data
 
     def _build_params(self, **kwargs):
-        """Builds parameters according to how Proxmox VE API wants it.
+        """Builds parameters according to how Proxmox VE API wants it. Boolean logic in the API
+        will require an integer and doesn't attempt to convert based on `yes`, `true, `y`, etc...
 
         Args:
             kwargs:     dict of arguments
@@ -331,6 +397,9 @@ class ProxmoxVEAPI:
         self,
         obj_in: ProxmoxBaseModel | list[ProxmoxBaseModel],
         model: ProxmoxBaseModel,
+        exclude_none: bool = True,
+        exclude_unset: bool = False,
+        by_alias: bool = True,
         **kwargs,
     ) -> dict | list[dict]:
         """Shorthand function to dump Pydantic model(s) with relevant logic to make sure
@@ -341,10 +410,74 @@ class ProxmoxVEAPI:
             model:      Pydantic Model
         """
         if isinstance(obj_in, model):
-            return obj_in.model_dump(exclude_none=True, by_alias=True, **kwargs)
+            return obj_in.model_dump(
+                exclude_none=exclude_none,
+                by_alias=by_alias,
+                exclude_unset=exclude_unset,
+                **kwargs,
+            )
         elif isinstance(obj_in, list):
             return [
-                m.model_dump(exclude_none=True, by_alias=True, **kwargs) for m in obj_in
+                m.model_dump(
+                    exclude_none=exclude_none,
+                    by_alias=by_alias,
+                    exclude_unset=exclude_unset,
+                    **kwargs,
+                )
+                for m in obj_in
             ]
         else:
             raise exceptions.ProxmoxAPIPydanticModelError
+
+    def _normalize_data(
+        self,
+        obj_in: ProxmoxBaseModel | dict,
+        module_model: tuple[str, str] = None,
+        exclude_none: bool = True,
+        exclude_unset: bool = False,
+        by_alias: bool = True,
+    ) -> ProxmoxBaseModel | dict:
+        """Shorthand function to return data from either a dict or Pydantic Object, if pydantic isn't used
+        then we simply use json.dumps, otherwise if it is used we need to pass in module_model which is a tuple
+        that attempts to dynamically load the Pydantic model (module_path, model_name) eg. ("pyproxmox_ve.models.user", "UserCreate"),
+        this assumes there is a Pydantic model called `UserCreate` inside the file `pyproxmox_ve.models.user.py`.
+
+        exclude_none, exclude_unset and by_alias are all functionality of Pydantic model_validation and model_dump. We pass this between functions
+        to avoid accidently setting default values on specific operations (eg. updating a user) because if the field is not provided during a PUT,
+        we don't want to explictly update the field back to the default as we might for example, renable a disabled user. So we tend to set `exclude_unset`
+        to True when we are performing PUT operations instead of writing all the logic for this command just for PUT operations.
+
+        Args:
+            obj_in:         Dict or Pydantic Object
+            module_model:   Tuple of module_name and model_name to dynamically load Pydantic object
+            exclude_none:   Passed to Pydantic functions
+            exclude_unset:  Passed to Pydantic functions
+            by_alias:       Passed to Pydantic functions
+        """
+        if self.use_pydantic:
+            if not module_model:
+                raise exceptions.ProxmoxAPIPydanticModelError
+
+            pydantic_model = self._get_pydantic_model(*module_model)
+
+            # Check if the model has already been validated otherwise manually validate the data against the Pydantic model
+            # Technically you can load data while bypassing validation, so this part here is risky... It's expected that the user
+            # has already performed the `.model_validate()` function on the Pydantic Model.
+            if isinstance(obj_in, pydantic_model):
+                obj = obj_in
+            elif isinstance(obj_in, (list, dict)):
+                obj = self._model_validate(obj_in=obj_in, model=pydantic_model)
+            else:
+                raise TypeError
+
+            data = self._model_dump(
+                obj_in=obj,
+                model=pydantic_model,
+                exclude_none=exclude_none,
+                exclude_unset=exclude_unset,
+                by_alias=by_alias,
+            )
+        else:
+            data = json.dumps(obj_in)
+
+        return data

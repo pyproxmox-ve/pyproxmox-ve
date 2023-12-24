@@ -1,34 +1,60 @@
-from typing import Optional
-from typing_extensions import Annotated
-from pydantic import Field
+from typing import Optional, Dict, Literal, Any
 from pyproxmox_ve.models.base import ProxmoxBaseModel
 
 
-class UserToken(ProxmoxBaseModel):
-    comment: Optional[str] = None
+class UserTokenBase(ProxmoxBaseModel):
     expire: Optional[int] = 0
-    privsep: Optional[bool] = True
-    tokenid: Optional[Annotated[str, Field(pattern="(^:[A-Za-z][A-Za-z0-9\\.\\-_]+)")]]
+    privsep: Optional[int] = 1
+
+
+class UserToken(UserTokenBase):
+    comment: Optional[str] = None
+    tokenid: Optional[str] = None
+
+
+class UserTokenResponse(ProxmoxBaseModel):
+    full_tokenid: str
+    info: dict
+    value: str
 
 
 class UserBase(ProxmoxBaseModel):
-    userid: str
+    userid: Optional[str] = None
     comment: Optional[str] = None
     email: Optional[str] = None
-    enable: Optional[bool] = None
+    enable: Optional[int] = None
     expire: Optional[int] = 0
     firstname: Optional[str] = None
-    groups: Optional[str] = None
+    groups: Optional[list[str] | str] = None
     keys: Optional[list[str]] = []
     lastname: Optional[str] = None
 
 
 class UserCreate(UserBase):
+    userid: str
     password: Optional[str] = None
+
+
+class UserUpdate(UserBase):
+    append: Optional[int] = None
+
+
+class UserUniqueToken(UserTokenBase):
+    pass
 
 
 class User(UserBase):
     realm_type: Optional[str] = None
     tfa_locked_until: Optional[int] = None
-    tokens: Optional[list[dict]] = []
-    totp_locked: Optional[bool] = None
+    tokens: Optional[list[UserToken]] = []
+    totp_locked: Optional[int] = None
+
+
+class UserWithTokenDict(UserBase):
+    tokens: Optional[Dict[str, UserUniqueToken]] = None
+
+
+class UserTFAType(ProxmoxBaseModel):
+    realm: Literal["oauth", "yubico"]
+    types: list[Any]
+    user: Literal["oauth", "yubico"]
