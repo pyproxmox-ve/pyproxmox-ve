@@ -87,9 +87,6 @@ class TestAccessUsers:
             "no such user" in error.message
         )  # May need to enable TFA first via a different endpoint for user to be recognized??
 
-    @pytest.mark.order(
-        after="test_users_token.py::TestAccessUsersToken::test_delete_user_token_not_exist"
-    )
     async def test_delete_user(self, proxmox: ProxmoxVEAPI):
         await proxmox.access.users.delete_user(user_id="pyproxmox-ve-pytest@pam")
 
