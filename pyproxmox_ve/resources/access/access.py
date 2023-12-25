@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pyproxmox_ve.resources.access.domains.domains import AccessDomainsAPI
 from pyproxmox_ve.resources.access.users.users import AccessUsersAPI
 
 if TYPE_CHECKING:
@@ -13,6 +14,7 @@ class AccessAPI:
     def __init__(self, api: ProxmoxVEAPI) -> None:
         self.api = api
         self.users = AccessUsersAPI(api)
+        self.domains = AccessDomainsAPI(api)
 
     async def get_acls(self) -> list[ACL | dict]:
         """Get all ACLs."""
