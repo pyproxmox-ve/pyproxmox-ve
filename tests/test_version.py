@@ -1,5 +1,6 @@
-from pyproxmox_ve import ProxmoxVEAPI
 import pytest
+
+from pyproxmox_ve import ProxmoxVEAPI
 
 
 @pytest.mark.asyncio

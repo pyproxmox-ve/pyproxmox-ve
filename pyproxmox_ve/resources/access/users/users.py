@@ -1,22 +1,21 @@
 from __future__ import annotations
-from typing_extensions import TYPE_CHECKING
+
+from typing import TYPE_CHECKING
 
 from pyproxmox_ve.resources.base import BaseResourceAPI
 
 if TYPE_CHECKING:
     from pyproxmox_ve.models.user import (
         User,
+        UserTFAType,
         UserToken,
         UserTokenResponse,
         UserWithTokenDict,
-        UserTFAType,
     )
 
 
 class AccessUsersAPI(BaseResourceAPI):
-    async def get_users(
-        self, enabled: bool = None, full: bool = False
-    ) -> list[User]:
+    async def get_users(self, enabled: bool = None, full: bool = False) -> list[User]:
         """Gathers all Users.
 
         Args:
@@ -89,9 +88,7 @@ class AccessUsersAPI(BaseResourceAPI):
             endpoint=f"/access/users/{user_id}/token",
         )
 
-    async def get_user_token(
-        self, user_id: str, token_id: str
-    ) -> UserToken | dict:
+    async def get_user_token(self, user_id: str, token_id: str) -> UserToken | dict:
         """Get a specific users API token.
 
         Args:
@@ -167,6 +164,4 @@ class AccessUsersAPI(BaseResourceAPI):
         Args:
             user_id:        User ID in the format of <username>@<realm>
         """
-        return await self.api.update(
-            endpoint=f"/access/users/{user_id}/unlock-tfa"
-        )
+        return await self.api.update(endpoint=f"/access/users/{user_id}/unlock-tfa")

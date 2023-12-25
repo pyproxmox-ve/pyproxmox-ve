@@ -24,4 +24,3 @@ TO-DO
 ## Development and Contributing
 
 See this document [which explains the development environment/setup required to contribute to this project](CONTRIBUTING.md)
-

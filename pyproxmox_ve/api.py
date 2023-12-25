@@ -1,19 +1,20 @@
 from __future__ import annotations
-from aiohttp import ClientSession, BaseConnector, TCPConnector, ClientResponse
-from types import TracebackType
-from typing import Type
-from ssl import SSLContext
-from yarl import URL
-from typing_extensions import TYPE_CHECKING
+
 import importlib
 import json
+from ssl import SSLContext
+from types import TracebackType
+from typing import TYPE_CHECKING
+
+from aiohttp import BaseConnector, ClientResponse, ClientSession, TCPConnector
+from yarl import URL
 
 if TYPE_CHECKING:
     from pyproxmox_ve.models.base import ProxmoxBaseModel
 
-from pyproxmox_ve.auth import PVEAPITokenAuth
-from pyproxmox_ve.resources import VersionAPI, AccessAPI
 from pyproxmox_ve import exceptions
+from pyproxmox_ve.auth import PVEAPITokenAuth
+from pyproxmox_ve.resources import AccessAPI, VersionAPI
 
 SUPPORTED_API_VERSIONS = ["api2"]
 SUPPORTED_API_TYPES = ["json"]
@@ -114,12 +115,12 @@ class ProxmoxVEAPI:
         self.access = AccessAPI(self)
         self.version = VersionAPI(self)
 
-    async def __aenter__(self) -> "ProxmoxVEAPI":
+    async def __aenter__(self) -> ProxmoxVEAPI:
         return self
 
     async def __aexit__(
         self,
-        exc_type: Type[BaseException] | None,
+        exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
@@ -367,7 +368,7 @@ class ProxmoxVEAPI:
             model_name:         Name of the Pydantic model
         """
         try:
-            pydantic_model: "ProxmoxBaseModel" = getattr(
+            pydantic_model: ProxmoxBaseModel = getattr(
                 importlib.import_module(module_name), model_name
             )
         except AttributeError as err:

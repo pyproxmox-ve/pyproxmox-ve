@@ -20,7 +20,7 @@ theme:
         icon: material/brightness-auto
         name: Switch to light mode
     - media: "(prefers-color-scheme: light)"
-      scheme: default 
+      scheme: default
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
@@ -44,7 +44,7 @@ nav:
       - Base: code/models/base.md
       - User: code/models/user.md
     - Supported API Endpoints: supported_endpoints.md
-  - Contributing: 
+  - Contributing:
     - PLEASE READ FIRST: contributing/contributing.md
     - Branch Structure: contributing/branch_structure.md
     - Coding Style: contributing/coding_style.md
