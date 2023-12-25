@@ -1,0 +1,75 @@
+site_name: pyproxmox-ve Documentation
+repo_url: https://github.com/pyproxmox-ve/pyproxmox-ve
+repo_name: pyproxmox-ve/pyproxmox-ve
+
+theme:
+  name: material
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - toc
+    - content.code.copy
+    - content.code.select
+  language: en
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default 
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+      primary: deep-orange
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+      primary: deep-orange
+
+nav:
+  - Get Started:
+    - Introduction: index.md
+    - How to Use (Basic): how_to_use_basic.md
+    - How to Use (Advanced): how_to_use_advanced.md
+  - API Documentation:
+    - General Design: code/general_design.md
+    - ProxmoxVEAPI: code/pyproxmoxveapi.md
+    - Data Models:
+      - Base: code/models/base.md
+      - User: code/models/user.md
+    - Supported API Endpoints: supported_endpoints.md
+  - Contributing: 
+    - PLEASE READ FIRST: contributing/contributing.md
+    - Branch Structure: contributing/branch_structure.md
+    - Coding Style: contributing/coding_style.md
+    - Tests: contributing/tests.md
+    - MkDocs: contributing/mkdocs.md
+  - FAQ:
+    - Frequently Asked Questions: faq.md
+  - Author: https://github.com/BSpendlove" target="_blank
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - admonition
+  - pymdownx.details
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            docstring_style: google

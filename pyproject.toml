@@ -21,6 +21,47 @@ pytest-order = "^1.2.0"
 [tool.poetry.group.pydantic.dependencies]
 pydantic = "^2.5.3"
 
+
+[tool.poetry.group.docs.dependencies]
+mkdocs-material = "^9.5.3"
+mkdocstrings-python = "^1.7.5"
+
+
+[tool.ruff]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+]
+
+ignore = [
+    "E501",  # Line too long ({width} > {limit})
+]
+
+
+[tool.ruff.format]
+docstring-code-format = true
+
+
+[tool.ruff.lint]
+extend-select = [
+    "D400"      # First line should end with a period
+]
+
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

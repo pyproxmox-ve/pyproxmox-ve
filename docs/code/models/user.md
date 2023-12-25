@@ -1,0 +1,10 @@
+::: pyproxmox_ve.models.user.UserTokenBase
+::: pyproxmox_ve.models.user.UserToken
+::: pyproxmox_ve.models.user.UserTokenResponse
+::: pyproxmox_ve.models.user.UserBase
+::: pyproxmox_ve.models.user.UserCreate
+::: pyproxmox_ve.models.user.UserUpdate
+::: pyproxmox_ve.models.user.UserUniqueToken
+::: pyproxmox_ve.models.user.User
+::: pyproxmox_ve.models.user.UserWithTokenDict
+::: pyproxmox_ve.models.user.UserTFAType

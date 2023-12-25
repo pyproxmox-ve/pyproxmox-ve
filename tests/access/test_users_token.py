@@ -29,7 +29,9 @@ class TestAccessUsersToken:
         assert len(user_tokens) > 0
 
     async def test_get_user_check_token_dict(self, proxmox: ProxmoxVEAPI):
-        user = await proxmox.access.users.get_user(user_id="pyproxmox-ve-pytest@pam")
+        user = await proxmox.access.users.get_user(
+            user_id="pyproxmox-ve-pytest@pam"
+        )
         assert user
         for token, token_data in user.tokens.items():
             assert token
@@ -47,7 +49,9 @@ class TestAccessUsersToken:
     async def test_update_user_token(self, proxmox: ProxmoxVEAPI):
         epoch_update = int(datetime.utcnow().strftime("%s")) + 86400
         await proxmox.access.users.update_user_token(
-            user_id="pyproxmox-ve-pytest@pam", token_id="pytest", expire=epoch_update
+            user_id="pyproxmox-ve-pytest@pam",
+            token_id="pytest",
+            expire=epoch_update,
         )
 
         user_token_updated = await proxmox.access.users.get_user_token(

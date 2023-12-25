@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 
 class VersionAPI(BaseResourceAPI):
-    async def get_version(self) -> dict | Version:
+    async def get_version(self) -> Version | dict:
         return await self.api.query(
             module_model=("pyproxmox_ve.models.version", "Version"),
             method="GET",

@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 class AccessUsersAPI(BaseResourceAPI):
     async def get_users(
         self, enabled: bool = None, full: bool = False
-    ) -> list[dict | User]:
+    ) -> list[User]:
         """Gathers all Users.
 
         Args:
@@ -77,7 +77,7 @@ class AccessUsersAPI(BaseResourceAPI):
         """
         return await self.api.delete(endpoint=f"/access/users/{user_id}")
 
-    async def get_user_tokens(self, user_id: str) -> list[UserToken]:
+    async def get_user_tokens(self, user_id: str) -> list[UserToken | dict]:
         """Gets all user API tokens.
 
         Args:
@@ -89,7 +89,9 @@ class AccessUsersAPI(BaseResourceAPI):
             endpoint=f"/access/users/{user_id}/token",
         )
 
-    async def get_user_token(self, user_id: str, token_id: str) -> UserToken:
+    async def get_user_token(
+        self, user_id: str, token_id: str
+    ) -> UserToken | dict:
         """Get a specific users API token.
 
         Args:
@@ -104,7 +106,7 @@ class AccessUsersAPI(BaseResourceAPI):
 
     async def create_user_token(
         self, user_id: str, token_id: str, **kwargs
-    ) -> UserTokenResponse:
+    ) -> UserTokenResponse | dict:
         """Create an API token for a specific user.
 
         Args:
@@ -147,8 +149,8 @@ class AccessUsersAPI(BaseResourceAPI):
             endpoint=f"/access/users/{user_id}/token/{token_id}"
         )
 
-    async def get_user_tfa_types(self, user_id: str) -> UserTFAType:
-        """Get a specific users TFA types
+    async def get_user_tfa_types(self, user_id: str) -> UserTFAType | dict:
+        """Get a specific users TFA types.
 
         Args:
             user_id:        User ID in the format of <username>@<realm>
@@ -160,9 +162,11 @@ class AccessUsersAPI(BaseResourceAPI):
         )
 
     async def unlock_user_tfa(self, user_id: str) -> bool:
-        """Unlock a specific users TFA
+        """Unlock a specific users TFA.
 
         Args:
             user_id:        User ID in the format of <username>@<realm>
         """
-        return await self.api.update(endpoint=f"/access/users/{user_id}/unlock-tfa")
+        return await self.api.update(
+            endpoint=f"/access/users/{user_id}/unlock-tfa"
+        )
