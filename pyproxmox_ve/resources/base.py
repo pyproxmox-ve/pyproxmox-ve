@@ -1,5 +1,4 @@
-from typing_extensions import TYPE_CHECKING
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from pyproxmox_ve.api import ProxmoxVEAPI

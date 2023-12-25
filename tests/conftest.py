@@ -1,7 +1,9 @@
-from pyproxmox_ve import ProxmoxVEAPI
-from pytest import FixtureRequest
-import pytest
 import asyncio
+
+import pytest
+from pytest import FixtureRequest
+
+from pyproxmox_ve import ProxmoxVEAPI
 
 
 def pytest_addoption(parser):

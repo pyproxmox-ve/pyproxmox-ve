@@ -15,9 +15,7 @@ class TestAccessUsers:
 
     async def test_get_user_not_exist(self, proxmox: ProxmoxVEAPI):
         with pytest.raises(ClientResponseError) as exc_info:
-            await proxmox.access.users.get_user(
-                user_id="pyproxmox-ve-pytest@pam"
-            )
+            await proxmox.access.users.get_user(user_id="pyproxmox-ve-pytest@pam")
 
         error = exc_info.value
         assert error.status == 500
@@ -34,9 +32,7 @@ class TestAccessUsers:
         assert response.get("data") is None
 
     async def test_get_user(self, proxmox: ProxmoxVEAPI):
-        user = await proxmox.access.users.get_user(
-            user_id="pyproxmox-ve-pytest@pam"
-        )
+        user = await proxmox.access.users.get_user(user_id="pyproxmox-ve-pytest@pam")
         assert user.enable == 1
         assert user.expire == 0
         assert user.comment == "comment"
@@ -45,9 +41,7 @@ class TestAccessUsers:
 
     async def test_create_user_exist(self, proxmox: ProxmoxVEAPI):
         with pytest.raises(ClientResponseError) as exc_info:
-            await proxmox.access.users.create_user(
-                user_id="pyproxmox-ve-pytest@pam"
-            )
+            await proxmox.access.users.create_user(user_id="pyproxmox-ve-pytest@pam")
 
         error = exc_info.value
         assert error.status == 500
@@ -59,9 +53,7 @@ class TestAccessUsers:
             user_id="pyproxmox-ve-pytest@pam", comment=uuid
         )
 
-        user = await proxmox.access.users.get_user(
-            user_id="pyproxmox-ve-pytest@pam"
-        )
+        user = await proxmox.access.users.get_user(user_id="pyproxmox-ve-pytest@pam")
         assert user
         assert user.comment == uuid
 
@@ -99,15 +91,11 @@ class TestAccessUsers:
         after="test_users_token.py::TestAccessUsersToken::test_delete_user_token_not_exist"
     )
     async def test_delete_user(self, proxmox: ProxmoxVEAPI):
-        await proxmox.access.users.delete_user(
-            user_id="pyproxmox-ve-pytest@pam"
-        )
+        await proxmox.access.users.delete_user(user_id="pyproxmox-ve-pytest@pam")
 
         # Check user no longer exist
         with pytest.raises(ClientResponseError) as exc_info:
-            await proxmox.access.users.get_user(
-                user_id="pyproxmox-ve-pytest@pam"
-            )
+            await proxmox.access.users.get_user(user_id="pyproxmox-ve-pytest@pam")
 
         error = exc_info.value
         assert error.status == 500

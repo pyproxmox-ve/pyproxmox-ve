@@ -1,6 +1,7 @@
+from datetime import datetime
+
 import pytest
 from aiohttp import ClientResponseError
-from datetime import datetime
 
 from pyproxmox_ve import ProxmoxVEAPI
 
@@ -29,9 +30,7 @@ class TestAccessUsersToken:
         assert len(user_tokens) > 0
 
     async def test_get_user_check_token_dict(self, proxmox: ProxmoxVEAPI):
-        user = await proxmox.access.users.get_user(
-            user_id="pyproxmox-ve-pytest@pam"
-        )
+        user = await proxmox.access.users.get_user(user_id="pyproxmox-ve-pytest@pam")
         assert user
         for token, token_data in user.tokens.items():
             assert token

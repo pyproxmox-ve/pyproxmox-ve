@@ -1,4 +1,5 @@
-from typing_extensions import TYPE_CHECKING
+from typing import TYPE_CHECKING
+
 from pyproxmox_ve.resources.access.users.users import AccessUsersAPI
 
 if TYPE_CHECKING:
