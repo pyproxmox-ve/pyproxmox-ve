@@ -6,3 +6,9 @@ class ConsoleEnum(str, Enum):
     vv = "vv"
     html5 = "html5"
     xtermjs = "xtermhjs"
+
+
+class AccessACLEnum(str, Enum):
+    user = "user"
+    group = "group"
+    token = "token"
