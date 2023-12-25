@@ -2,6 +2,8 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![CI Status](https://github.com/proxmox-central-manager/pyproxmox-ve/actions/workflows/ci.yml/badge.svg)](https://github.com/proxmox-central-manager/pyproxmox-ve/actions/workflows/ci.yml/badge.svg)
 
+### Documentation: https://pyproxmox-ve.github.io/
+
 A simple python module to interact with the Proxmox Virtual Environment (PVE) HTTP API which uses aiohttp and pydantic.
 
 ## Installation

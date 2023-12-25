@@ -137,7 +137,7 @@ class ProxmoxVEAPI:
         data_key: str = "",
         **kwargs,
     ) -> dict | None:
-        """aiohttp request shorthand function to handle simple logic
+        """aiohttp request shorthand function to handle simple logic.
 
         Args:
             endpoint:   API Endpoint
@@ -158,7 +158,9 @@ class ProxmoxVEAPI:
                 raise KeyError(f"Method `{method}` is not valid")
 
         r = await ctx(
-            url=f"/{self.api_version}/{self.api_type}" + endpoint, data=data, **kwargs
+            url=f"/{self.api_version}/{self.api_type}" + endpoint,
+            data=data,
+            **kwargs,
         )
         if not r.ok:
             r.raise_for_status()
@@ -202,7 +204,7 @@ class ProxmoxVEAPI:
                 used to extract the relevant data directly from the ClientResponse
             module_model:       Path to module and model to dynamically load if using Pydantic validation library
             validate_response:  Validate the response using Pydantic
-            response_model:     Path to module and model to dynamically validate the respose using Pydantic library
+            response_model:     Path to module and model to dynamically validate the response using Pydantic library
                 if this model is the same as the original model to update the object, leave this blank and we will
                 automatically use the `module_model` to validate the response.
         """
@@ -227,12 +229,11 @@ class ProxmoxVEAPI:
         # the same model passed to update the data can be used to validate the response.
         # Be careful using the same data model to validate the response as it could be a unique field required
         # when creating the resource, but is never returned in the object back from the API
-        if self.use_pydantic:
-            if validate_response:
-                if not response_model:
-                    response_model = module_model  # Use same Model that was used to update, to validate response
-                validation_model = self._get_pydantic_model(*response_model)
-                r_data = self._model_validate(obj_in=r_data, model=validation_model)
+        if self.use_pydantic and validate_response:
+            if not response_model:
+                response_model = module_model  # Use same Model that was used to update, to validate response
+            validation_model = self._get_pydantic_model(*response_model)
+            r_data = self._model_validate(obj_in=r_data, model=validation_model)
 
         return r_data
 
@@ -257,7 +258,7 @@ class ProxmoxVEAPI:
                 used to extract the relevant data directly from the ClientResponse
             module_model:       Path to module and model to dynamically load if using Pydantic validation library
             validate_response:  Validate the response using Pydantic
-            response_model:     Path to module and model to dynamically validate the respose using Pydantic library
+            response_model:     Path to module and model to dynamically validate the response using Pydantic library
                 if this model is the same as the original model to create the object, leave this blank and we will
                 automatically use the `module_model` to validate the response.
         """
@@ -275,12 +276,11 @@ class ProxmoxVEAPI:
         # the same model passed to update the data can be used to validate the response.
         # Be careful using the same data model to validate the response as it could be a unique field required
         # when creating the resource, but is never returned in the object back from the API
-        if self.use_pydantic:
-            if validate_response:
-                if not response_model:
-                    response_model = module_model  # Use same Model that was used to create, to validate response
-                validation_model = self._get_pydantic_model(*response_model)
-                r_data = self._model_validate(obj_in=r_data, model=validation_model)
+        if self.use_pydantic and validate_response:
+            if not response_model:
+                response_model = module_model  # Use same Model that was used to create, to validate response
+            validation_model = self._get_pydantic_model(*response_model)
+            r_data = self._model_validate(obj_in=r_data, model=validation_model)
 
         return r_data
 
@@ -314,7 +314,7 @@ class ProxmoxVEAPI:
         return data
 
     async def _extract_response_json(
-        self, response: ClientResponse, root_keys: list[str] = []
+        self, response: ClientResponse, root_keys: list[str] = None
     ) -> dict:
         """Attempts to extract JSON from a response and check for various root keys exist in the body.
 
@@ -322,6 +322,8 @@ class ProxmoxVEAPI:
             response:   ClientResponse object
             root_keys:  List of keys to check in the initial JSON body
         """
+        if root_keys is None:
+            root_keys = []
         try:
             data = await response.json()
         except Exception as err:
@@ -437,14 +439,15 @@ class ProxmoxVEAPI:
         exclude_unset: bool = False,
         by_alias: bool = True,
     ) -> ProxmoxBaseModel | dict:
-        """Shorthand function to return data from either a dict or Pydantic Object, if pydantic isn't used
-        then we simply use json.dumps, otherwise if it is used we need to pass in module_model which is a tuple
+        """Shorthand function to return data from either a dict or Pydantic Object.
+
+        If pydantic isn't used then we simply use json.dumps, otherwise if it is used we need to pass in module_model which is a tuple
         that attempts to dynamically load the Pydantic model (module_path, model_name) eg. ("pyproxmox_ve.models.user", "UserCreate"),
         this assumes there is a Pydantic model called `UserCreate` inside the file `pyproxmox_ve.models.user.py`.
 
         exclude_none, exclude_unset and by_alias are all functionality of Pydantic model_validation and model_dump. We pass this between functions
-        to avoid accidently setting default values on specific operations (eg. updating a user) because if the field is not provided during a PUT,
-        we don't want to explictly update the field back to the default as we might for example, renable a disabled user. So we tend to set `exclude_unset`
+        to avoid accidentally setting default values on specific operations (eg. updating a user) because if the field is not provided during a PUT,
+        we don't want to explicitly update the field back to the default as we might for example, reenable a disabled user. So we tend to set `exclude_unset`
         to True when we are performing PUT operations instead of writing all the logic for this command just for PUT operations.
 
         Args:

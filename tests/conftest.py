@@ -57,7 +57,7 @@ def event_loop(request: FixtureRequest):
 
 @pytest.fixture
 def proxmox(event_loop, request: FixtureRequest) -> ProxmoxVEAPI:
-    """Creates a base ProxmoxVEAPI object to be used during every test"""
+    """Creates a base ProxmoxVEAPI object to be used during every test."""
     url = request.config.getoption("url")
     username = request.config.getoption("username")
     realm = request.config.getoption("realm")
