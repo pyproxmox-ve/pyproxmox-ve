@@ -41,3 +41,6 @@ Currently, all responses that return a status code of 400 or higher will raise a
 # Bad Token Example
 > aiohttp.client_exceptions.ClientResponseError: 401, message='invalid token value!', url=URL('https://192.0.2.100:8006/api2/json/version')
 ```
+
+!!! note
+    If you would like to not use the custom exceptions provided by this module, set `raise_exceptions` to False when initializing `ProxmoxVEAPI` and this will simply raise aiohttp ClientResponseError exceptions when Proxmox API returns a status code of `400` or higher. However using the inbuilt exceptions should improve both the troubleshooting and developer experience.
