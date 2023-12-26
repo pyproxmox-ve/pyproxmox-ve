@@ -32,3 +32,8 @@ class ProxmoxAPIPydanticNotInstalledError(Exception):
 class ProxmoxAPIUserNotFoundError(Exception):
     def __init__(self, userid: str):
         super().__init__(f"User {userid} was not found.")
+
+
+class ProxmoxMisconfigurationError(Exception):
+    def __init__(self, message: str):
+        super().__init__(message)

@@ -34,8 +34,8 @@ class ProxmoxVEAPI:
 
     Args:
         url:            ProxmoxVE API Url (eg. https://localhost:8086)
-        username:       Username to authenticate with
-        realm:          Realm to authenticate with
+        username:       Username to authenticate with <username>@<realm>
+        password:       Password to authenticate with if not using API authentication
         api_token_id:   API Token ID to authenticate with
         api_token:      API Token to authenticate with
         api_version:    API Version (only `api2` is currently supported)
@@ -51,9 +51,10 @@ class ProxmoxVEAPI:
         self,
         url: str,
         username: str,
-        realm: str,
-        api_token_id: str,
-        api_token: str,
+        password: str = "",
+        otp: str = "",
+        api_token_id: str = "",
+        api_token: str = "",
         api_version: str = "api2",
         api_type: str = "json",
         ssl_context: SSLContext | None = None,
@@ -74,7 +75,8 @@ class ProxmoxVEAPI:
             )
 
         self.username = username
-        self.realm = realm
+        self.password = password
+        self.otp = otp
         self.api_token_id = api_token_id
         self.api_token = api_token
         self.api_version = api_version
@@ -84,6 +86,24 @@ class ProxmoxVEAPI:
             self.url = URL(url).joinpath(self.api_version, self.api_type)
         except (ValueError, TypeError) as err:
             raise err
+
+        self._ticket_cookie = None
+        self._csrf_token = None
+        self._auth = None
+        if not self.password and not self.api_token:
+            raise exceptions.ProxmoxMisconfigurationError(
+                message="A Password or API Token must be provided to authenticate with the Proxmox API"
+            )
+
+        if self.password:
+            # Setup Cookie Token
+            ...
+        else:
+            # Setup API token
+            self._auth = PVEAPITokenAuth(
+                login=f"{self.username}!{self.api_token_id}",
+                password=self.api_token,
+            )
 
         self.ssl_context = ssl_context
         self.verify_ssl = verify_ssl
@@ -97,10 +117,7 @@ class ProxmoxVEAPI:
         if not self.session:
             self.session = ClientSession(
                 base_url=self.url,
-                auth=PVEAPITokenAuth(
-                    login=f"{self.username}@{self.realm}!{self.api_token_id}",
-                    password=self.api_token,
-                ),
+                auth=self._auth,
                 connector=self.connector,
                 **kwargs,
             )
