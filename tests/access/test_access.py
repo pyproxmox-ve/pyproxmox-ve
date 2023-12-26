@@ -1,7 +1,7 @@
 import pytest
-from aiohttp import ClientResponseError
 
 from pyproxmox_ve import ProxmoxVEAPI
+from pyproxmox_ve.exceptions import ProxmoxAPIResponseError
 
 
 @pytest.mark.asyncio
@@ -34,14 +34,14 @@ class TestAccess:
 
     async def test_update_password(self, proxmox: ProxmoxVEAPI):
         # This endpoint is not available for API tokens.
-        with pytest.raises(ClientResponseError) as exc_info:
+        with pytest.raises(ProxmoxAPIResponseError) as exc_info:
             await proxmox.access.update_password(
                 user_id="pyproxmox-ve-pytest@pam", password="fakepassword123!"
             )
 
             error = exc_info.value
             assert error.status == 403
-            assert "need proper ticket" in error.message
+            assert "need proper ticket" in error.reason
 
     async def test_get_permissions(self, proxmox: ProxmoxVEAPI):
         response = await proxmox.access.get_permissions(path="/access")
