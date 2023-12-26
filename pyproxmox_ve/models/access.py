@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import Field
 
-from pyproxmox_ve.models.base import ProxmoxBaseModel
+from pyproxmox_ve.models.base import ProxmoxBaseModel, ProxmoxBaseModelWithoutAlias
 from pyproxmox_ve.models.enums import (
     AccessACLEnum,
     DomainTypeEnum,
@@ -60,25 +60,25 @@ class Domain(ProxmoxBaseModel):
     tfa: Optional[TFAEnum] = None
 
 
-class DomainCreate(ProxmoxBaseModel):
+class DomainCreate(ProxmoxBaseModelWithoutAlias):
     realm: str
     type: DomainTypeEnum
-    acr_values: Optional[str] = None
-    autocreate: Optional[bool] = False
+    acr_values: Optional[str] = Field(None, serialization_alias="acr-values")
+    autocreate: Optional[bool] = None
     base_dn: Optional[str] = None
     bind_dn: Optional[str] = None
     capath: Optional[str] = "/etc/ssl/certs"
-    case_sensitive: Optional[bool] = True
+    case_sensitive: Optional[bool] = Field(1, serialization_alias="case-sensitive")
     cert: Optional[str] = None
     certkey: Optional[str] = None
-    check_connection: Optional[bool] = False
+    check_connection: Optional[bool] = Field(0, serialization_alias="check-connection")
     client_id: Optional[str] = None
     client_key: Optional[str] = None
     comment: Optional[str] = None
     default: Optional[bool] = None
     domain: Optional[str] = None
     filter: Optional[str] = None
-    group_classes: Optional[str] = "groupOfNames, group, univent..."
+    group_classes: Optional[str] = None
     group_dn: Optional[str] = None
     group_filter: Optional[str] = None
     group_name_attr: Optional[str] = None
@@ -87,7 +87,7 @@ class DomainCreate(ProxmoxBaseModel):
     password: Optional[str] = None
     port: Optional[int] = None
     prompt: Optional[str] = None
-    scopes: Optional[str] = "email profile"
+    scopes: Optional[str] = None
     secure: Optional[bool] = None
     server1: Optional[str] = None
     server2: Optional[str] = None
@@ -98,4 +98,4 @@ class DomainCreate(ProxmoxBaseModel):
     user_attr: Optional[str] = None
     user_classes: Optional[str] = None
     username_claim: Optional[str] = None
-    verify: Optional[bool] = False
+    verify: Optional[bool] = 0

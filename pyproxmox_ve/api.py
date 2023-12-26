@@ -70,6 +70,7 @@ class ProxmoxVEAPI:
         session: ClientSession = None,
         cookie_jar: CookieJar = None,
         use_pydantic: bool = False,
+        raise_exceptions: bool = True,
         **kwargs,
     ) -> None:
         if api_version not in SUPPORTED_API_VERSIONS:
@@ -139,6 +140,9 @@ class ProxmoxVEAPI:
             module_found = importlib.util.find_spec("pydantic")
             if not module_found:
                 raise exceptions.ProxmoxAPIPydanticNotInstalledError
+
+        # Use pyproxmox_ve custom exceptions
+        self.raise_exceptions = raise_exceptions
 
         # APIs
         self.access = AccessAPI(self)
@@ -228,6 +232,15 @@ class ProxmoxVEAPI:
             **kwargs,
         )
         if not r.ok:
+            if self.raise_exceptions:
+                errors = None
+                if r.content_length > 13:
+                    # Probably something more interesting than {'data': None}
+                    errors = await r.json()
+                raise exceptions.ProxmoxAPIResponseError(
+                    status=r.status, reason=r.reason, errors=errors
+                )
+
             r.raise_for_status()
 
         data = await r.json()

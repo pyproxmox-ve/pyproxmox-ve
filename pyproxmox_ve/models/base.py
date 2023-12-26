@@ -11,3 +11,12 @@ class ProxmoxBaseModel(BaseModel):
         alias_generator=normalize_keys,
         use_enum_values=True,
     )
+
+
+class ProxmoxBaseModelWithoutAlias(BaseModel):
+    """Use this class when most attributes shouldn't be serialized using alias generator."""
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        use_enum_values=True,
+    )

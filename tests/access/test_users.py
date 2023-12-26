@@ -1,9 +1,9 @@
 from uuid import uuid4
 
 import pytest
-from aiohttp import ClientResponseError
 
 from pyproxmox_ve import ProxmoxVEAPI
+from pyproxmox_ve.exceptions import ProxmoxAPIResponseError
 
 
 @pytest.mark.asyncio
@@ -14,12 +14,12 @@ class TestAccessUsers:
         assert len(response) > 0
 
     async def test_get_user_not_exist(self, proxmox: ProxmoxVEAPI):
-        with pytest.raises(ClientResponseError) as exc_info:
+        with pytest.raises(ProxmoxAPIResponseError) as exc_info:
             await proxmox.access.users.get_user(user_id="pyproxmox-ve-pytest@pam")
 
         error = exc_info.value
         assert error.status == 500
-        assert "no such user" in error.message
+        assert "no such user" in error.reason
 
     async def test_create_user(self, proxmox: ProxmoxVEAPI):
         response = await proxmox.access.users.create_user(
@@ -40,12 +40,12 @@ class TestAccessUsers:
         assert user.lastname == "lastname"
 
     async def test_create_user_exist(self, proxmox: ProxmoxVEAPI):
-        with pytest.raises(ClientResponseError) as exc_info:
+        with pytest.raises(ProxmoxAPIResponseError) as exc_info:
             await proxmox.access.users.create_user(user_id="pyproxmox-ve-pytest@pam")
 
         error = exc_info.value
         assert error.status == 500
-        assert "create user failed" in error.message
+        assert "create user failed" in error.reason
 
     async def test_update_user(self, proxmox: ProxmoxVEAPI):
         uuid = str(uuid4())
@@ -59,14 +59,14 @@ class TestAccessUsers:
 
     async def test_delete_user_not_exist(self, proxmox: ProxmoxVEAPI):
         if proxmox.api_token:
-            with pytest.raises(ClientResponseError) as exc_info:
+            with pytest.raises(ProxmoxAPIResponseError) as exc_info:
                 await proxmox.access.users.delete_user(
                     user_id="pyproxmox-ve-pytest-wrong@pam"
                 )
 
             error = exc_info.value
             assert error.status == 500
-            assert "no such user" in error.message
+            assert "no such user" in error.reason
         else:
             await proxmox.access.users.delete_user(
                 user_id="pyproxmox-ve-pytest-wrong@pam"
@@ -83,7 +83,7 @@ class TestAccessUsers:
         )  # Enabling TFA type per user may be done via different API endpoint??
 
     async def test_unlock_user_tfa(self, proxmox: ProxmoxVEAPI):
-        with pytest.raises(ClientResponseError) as exc_info:
+        with pytest.raises(ProxmoxAPIResponseError) as exc_info:
             await proxmox.access.users.unlock_user_tfa(
                 user_id="pyproxmox-ve-pytest-wrong@pam"
             )
@@ -91,16 +91,16 @@ class TestAccessUsers:
         error = exc_info.value
         assert error.status == 500
         assert (
-            "no such user" in error.message
+            "no such user" in error.reason
         )  # May need to enable TFA first via a different endpoint for user to be recognized??
 
     async def test_delete_user(self, proxmox: ProxmoxVEAPI):
         await proxmox.access.users.delete_user(user_id="pyproxmox-ve-pytest@pam")
 
         # Check user no longer exist
-        with pytest.raises(ClientResponseError) as exc_info:
+        with pytest.raises(ProxmoxAPIResponseError) as exc_info:
             await proxmox.access.users.get_user(user_id="pyproxmox-ve-pytest@pam")
 
         error = exc_info.value
         assert error.status == 500
-        assert "no such user" in error.message
+        assert "no such user" in error.reason

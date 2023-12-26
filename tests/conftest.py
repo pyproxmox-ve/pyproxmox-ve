@@ -71,6 +71,7 @@ async def proxmox(request: FixtureRequest) -> ProxmoxVEAPI:
         api_token_id=api_token_id,
         api_token=api_token if not use_cookie_auth else None,
         use_pydantic=True,
+        raise_exceptions=True,  # Always explicitly raise custom exceptions during pytest
     )
 
     if use_cookie_auth:

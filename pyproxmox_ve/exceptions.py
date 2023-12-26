@@ -1,3 +1,12 @@
+class ProxmoxAPIResponseError(Exception):
+    def __init__(self, status: int, reason: str, errors: dict):
+        self.status = status
+        self.reason = reason
+        self.errors = errors
+
+        super().__init__(f"[{self.status}] {self.reason} - API Errors: {self.errors}")
+
+
 class ProxmoxAPIAuthenticationError(Exception):
     def __init__(self):
         super().__init__("Authentication Error (No ticket or API key).")
