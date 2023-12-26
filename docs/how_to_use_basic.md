@@ -10,14 +10,13 @@ After installing the module, `pyproxmox-ve` is now ready to be used.
     from pyproxmox_ve import ProxmoxVEAPI
     ```
 
-2. Initalise the API object with your API credentials
+2. Initialize the API object with your API credentials
 
     ```python
 
     api = ProxmoxVEAPI(
         url="https://192.0.2.100:8006",
-        username="root",
-        realm="pam",
+        username="root@pam",
         api_token_id="mytoken",
         api_token="abcd1234-efgh5678",
         use_pydantic=True # Set to False if you didn't `pip install pyproxmox-ve[pydantic]`

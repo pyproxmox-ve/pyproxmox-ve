@@ -6,7 +6,13 @@ from ssl import SSLContext
 from types import TracebackType
 from typing import TYPE_CHECKING
 
-from aiohttp import BaseConnector, ClientResponse, ClientSession, TCPConnector
+from aiohttp import (
+    BaseConnector,
+    ClientResponse,
+    ClientSession,
+    CookieJar,
+    TCPConnector,
+)
 from yarl import URL
 
 if TYPE_CHECKING:
@@ -43,6 +49,7 @@ class ProxmoxVEAPI:
         ssl_context:    SSL Context object to pass to the aiohttp session
         connector:      Connector object to pass to the aiohttp session (only `TCPConnector` is currently supported)
         session:        ClientSession object to pass if you want to override anything
+        cookie_jar:     CookieJar object to pass if you want to override anything
         use_pydantic:   Use the Pydantic library for data validation and accessing data via Python objects
         kwargs:         kwargs are passed to the ClientSession that is automatically created if `session` is not used
     """
@@ -57,10 +64,11 @@ class ProxmoxVEAPI:
         api_token: str = "",
         api_version: str = "api2",
         api_type: str = "json",
-        ssl_context: SSLContext | None = None,
+        ssl_context: SSLContext = None,
         verify_ssl: bool = False,
-        connector: BaseConnector | None = None,
-        session: ClientSession | None = None,
+        connector: BaseConnector = None,
+        session: ClientSession = None,
+        cookie_jar: CookieJar = None,
         use_pydantic: bool = False,
         **kwargs,
     ) -> None:
@@ -95,11 +103,8 @@ class ProxmoxVEAPI:
                 message="A Password or API Token must be provided to authenticate with the Proxmox API"
             )
 
-        if self.password:
-            # Setup Cookie Token
-            ...
-        else:
-            # Setup API token
+        if self.api_token:
+            # Setup API token which is preferred over cookie
             self._auth = PVEAPITokenAuth(
                 login=f"{self.username}!{self.api_token_id}",
                 password=self.api_token,
@@ -114,11 +119,18 @@ class ProxmoxVEAPI:
             )
 
         self.session = session
+        self.cookie_jar = cookie_jar
+        if not self.cookie_jar:
+            self.cookie_jar = CookieJar(
+                unsafe=True, quote_cookie=False
+            )  # Allow IPs and not just DNS based cookies
+
         if not self.session:
             self.session = ClientSession(
                 base_url=self.url,
                 auth=self._auth,
                 connector=self.connector,
+                cookie_jar=self.cookie_jar,
                 **kwargs,
             )
 
@@ -147,12 +159,39 @@ class ProxmoxVEAPI:
         if self.session:
             await self.session.close()
 
+    async def get_ticket(self) -> None:
+        """Attempts to get a ticket cookie when API keys are not used."""
+        if self.api_token:
+            return
+
+        if not self.username or not self.password:
+            raise exceptions.ProxmoxMisconfigurationError(
+                message="Cookie authentication requires both a Username and Password"
+            )
+
+        ticket = await self.access.create_ticket(
+            username=self.username, password=self.password
+        )
+        if self.use_pydantic:
+            self._ticket_cookie = ticket.ticket
+            self._csrf_token = ticket.csrf_token
+        else:
+            self._ticket_cookie = ticket["ticket"]
+            self._csrf_token = ticket["CSRFPreventionToken"]
+
+        self.cookie_jar.update_cookies(
+            {
+                "PVEAuthCookie": self._ticket_cookie,
+            }
+        )
+
     async def http_request(
         self,
         endpoint: str,
         method: str,
         data: dict = None,
         data_key: str = "",
+        headers: dict = None,
         **kwargs,
     ) -> dict | None:
         """aiohttp request shorthand function to handle simple logic.
@@ -162,6 +201,9 @@ class ProxmoxVEAPI:
             method:     HTTP Method (GET, POST, PUT, DELETE)
             data_key:   nested key to export info if present
         """
+        if headers is None:
+            headers = {}
+
         ctx = None
         match method.upper():
             case "GET":
@@ -175,9 +217,14 @@ class ProxmoxVEAPI:
             case _:
                 raise KeyError(f"Method `{method}` is not valid")
 
+        # POST, PUT and DELETE must include CSRFPreventionToken
+        if self._csrf_token and method.upper() in ["POST", "PUT", "DELETE"]:
+            headers.update({"CSRFPreventionToken": self._csrf_token})
+
         r = await ctx(
             url=f"/{self.api_version}/{self.api_type}" + endpoint,
             data=data,
+            headers=headers,
             **kwargs,
         )
         if not r.ok:

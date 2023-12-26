@@ -89,6 +89,7 @@ class AccessAPI:
             endpoint="/access/ticket",
             obj_in=kwargs,
             module_model=("pyproxmox_ve.models.access", "AuthenticationTicket"),
+            data_key="data",
             validate_response=True,
             response_model=(
                 "pyproxmox_ve.models.access",
