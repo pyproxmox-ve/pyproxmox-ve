@@ -28,7 +28,7 @@ class UserBase(ProxmoxBaseModel):
     expire: Optional[int] = 0
     firstname: Optional[str] = None
     groups: Optional[list[str] | str] = None
-    keys: Optional[list[str]] = []
+    keys: Optional[list[str] | str] = None
     lastname: Optional[str] = None
 
 
@@ -57,6 +57,6 @@ class UserWithTokenDict(UserBase):
 
 
 class UserTFAType(ProxmoxBaseModel):
-    realm: TFAEnum
-    types: list[Any]
+    realm: Optional[TFAEnum] = None
+    types: Optional[list[Any]] = None
     user: TFAEnum

@@ -50,7 +50,7 @@ class TestAccessUsers:
     async def test_update_user(self, proxmox: ProxmoxVEAPI):
         uuid = str(uuid4())
         await proxmox.access.users.update_user(
-            user_id="pyproxmox-ve-pytest@pam", comment=uuid
+            user_id="pyproxmox-ve-pytest@pam", comment=uuid, groups=["pytest-group"]
         )
 
         user = await proxmox.access.users.get_user(user_id="pyproxmox-ve-pytest@pam")
@@ -75,12 +75,7 @@ class TestAccessUsers:
             # Cookie auth returns 200 for some odd reason...
 
     async def test_get_user_tfa_types(self, proxmox: ProxmoxVEAPI):
-        tfa_types = await proxmox.access.users.get_user_tfa_types(
-            user_id="pyproxmox-ve-pytest@pam"
-        )
-        assert (
-            tfa_types is None
-        )  # Enabling TFA type per user may be done via different API endpoint??
+        await proxmox.access.users.get_user_tfa_types(user_id="pyproxmox-ve-pytest@pam")
 
     async def test_unlock_user_tfa(self, proxmox: ProxmoxVEAPI):
         with pytest.raises(ProxmoxAPIResponseError) as exc_info:

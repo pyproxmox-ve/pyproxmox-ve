@@ -8,6 +8,7 @@ from pyproxmox_ve.models.enums import (
     DomainTypeEnum,
     LDAPModeEnum,
     SSLVersionEnum,
+    SyncScopeEnum,
     TFAEnum,
 )
 
@@ -17,15 +18,15 @@ class ACL(ProxmoxBaseModel):
     roleid: str
     type: AccessACLEnum
     ugid: str
-    propagate: Optional[bool] = 1
+    propagate: Optional[int] = 1
 
 
 class ACLUpdate(ProxmoxBaseModel):
     path: str
     roles: str
-    delete: Optional[bool] = None
+    delete: Optional[int] = None
     groups: Optional[str] = None
-    propagate: Optional[bool] = 1
+    propagate: Optional[int] = 1
     tokens: Optional[str] = None
     users: Optional[str] = None
 
@@ -38,7 +39,7 @@ class PasswordUpdate(ProxmoxBaseModel):
 class AuthenticationTicket(ProxmoxBaseModel):
     username: str
     password: str
-    new_format: bool = None
+    new_format: int = None
     otp: str = None
     path: str = None
     privs: str = None
@@ -53,29 +54,22 @@ class AuthenticationTicketResponse(ProxmoxBaseModel):
     ticket: Optional[str] = None
 
 
-class Domain(ProxmoxBaseModel):
-    realm: str
-    type: str
-    comment: Optional[str] = None
-    tfa: Optional[TFAEnum] = None
-
-
-class DomainCreate(ProxmoxBaseModelWithoutAlias):
-    realm: str
-    type: DomainTypeEnum
+class DomainBase(ProxmoxBaseModelWithoutAlias):
+    realm: Optional[str] = None
+    type: Optional[DomainTypeEnum] = None
     acr_values: Optional[str] = Field(None, serialization_alias="acr-values")
-    autocreate: Optional[bool] = None
+    autocreate: Optional[int] = None
     base_dn: Optional[str] = None
     bind_dn: Optional[str] = None
     capath: Optional[str] = "/etc/ssl/certs"
-    case_sensitive: Optional[bool] = Field(1, serialization_alias="case-sensitive")
+    case_sensitive: Optional[int] = Field(1, serialization_alias="case-sensitive")
     cert: Optional[str] = None
     certkey: Optional[str] = None
-    check_connection: Optional[bool] = Field(0, serialization_alias="check-connection")
+    check_connection: Optional[int] = Field(0, serialization_alias="check-connection")
     client_id: Optional[str] = None
     client_key: Optional[str] = None
     comment: Optional[str] = None
-    default: Optional[bool] = None
+    default: Optional[int] = None
     domain: Optional[str] = None
     filter: Optional[str] = None
     group_classes: Optional[str] = None
@@ -88,7 +82,7 @@ class DomainCreate(ProxmoxBaseModelWithoutAlias):
     port: Optional[int] = None
     prompt: Optional[str] = None
     scopes: Optional[str] = None
-    secure: Optional[bool] = None
+    secure: Optional[int] = None
     server1: Optional[str] = None
     server2: Optional[str] = None
     sslversion: Optional[SSLVersionEnum] = None
@@ -98,4 +92,27 @@ class DomainCreate(ProxmoxBaseModelWithoutAlias):
     user_attr: Optional[str] = None
     user_classes: Optional[str] = None
     username_claim: Optional[str] = None
-    verify: Optional[bool] = 0
+    verify: Optional[int] = 0
+
+
+class Domain(DomainBase):
+    type: str
+    comment: Optional[str] = None
+    tfa: Optional[TFAEnum] = None
+
+
+class DomainCreate(DomainBase):
+    realm: str
+    type: DomainTypeEnum
+
+
+class DomainUpdate(DomainBase):
+    realm: str
+
+
+class DomainSync(ProxmoxBaseModel):
+    realm: str
+    dry_run: Optional[int] = 0
+    enable_new: Optional[int] = 1
+    remove_vanished: Optional[str] = None
+    scope: Optional[SyncScopeEnum] = None
