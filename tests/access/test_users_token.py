@@ -1,9 +1,9 @@
 from datetime import datetime
 
 import pytest
-from aiohttp import ClientResponseError
 
 from pyproxmox_ve import ProxmoxVEAPI
+from pyproxmox_ve.exceptions import ProxmoxAPIResponseError
 
 
 @pytest.mark.asyncio
@@ -67,11 +67,11 @@ class TestAccessUsersToken:
         )
 
     async def test_delete_user_token_not_exist(self, proxmox: ProxmoxVEAPI):
-        with pytest.raises(ClientResponseError) as exc_info:
+        with pytest.raises(ProxmoxAPIResponseError) as exc_info:
             await proxmox.access.users.delete_user_token(
                 user_id="pyproxmox-ve-pytest@pam", token_id="pytest"
             )
 
         error = exc_info.value
         assert error.status == 500
-        assert "no such token" in error.message
+        assert "no such token" in error.reason
