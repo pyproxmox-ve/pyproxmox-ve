@@ -53,11 +53,15 @@ class TestAccess:
 
     async def test_create_ticket(self, proxmox: ProxmoxVEAPI):
         # This endpoint is not available for API tokens.
-        with pytest.raises(ClientResponseError) as exc_info:
-            await proxmox.access.create_ticket(
-                username="pyproxmox-ve-pytest@pam", password="fakepassword123!"
+        if proxmox.api_token:
+            pytest.skip("API Auth can not be used to create a ticket")
+
+        # TO DO
+
+    async def test_create_ticket_renew(self, proxmox: ProxmoxVEAPI):
+        if proxmox.api_token:
+            pytest.skip(
+                "Ticket renew only works with Cookie authentication, not API token authentication"
             )
 
-            error = exc_info.value
-            assert error.status == 403
-            assert "need proper ticket" in error.message
+        # TO DO

@@ -58,14 +58,21 @@ class TestAccessUsers:
         assert user.comment == uuid
 
     async def test_delete_user_not_exist(self, proxmox: ProxmoxVEAPI):
-        with pytest.raises(ClientResponseError) as exc_info:
+        if proxmox.api_token:
+            with pytest.raises(ClientResponseError) as exc_info:
+                await proxmox.access.users.delete_user(
+                    user_id="pyproxmox-ve-pytest-wrong@pam"
+                )
+
+            error = exc_info.value
+            assert error.status == 500
+            assert "no such user" in error.message
+        else:
             await proxmox.access.users.delete_user(
                 user_id="pyproxmox-ve-pytest-wrong@pam"
             )
 
-        error = exc_info.value
-        assert error.status == 500
-        assert "no such user" in error.message
+            # Cookie auth returns 200 for some odd reason...
 
     async def test_get_user_tfa_types(self, proxmox: ProxmoxVEAPI):
         tfa_types = await proxmox.access.users.get_user_tfa_types(

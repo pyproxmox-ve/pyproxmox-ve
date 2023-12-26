@@ -1,5 +1,7 @@
 from typing import Optional
 
+from pydantic import Field
+
 from pyproxmox_ve.models.base import ProxmoxBaseModel
 from pyproxmox_ve.models.enums import (
     AccessACLEnum,
@@ -46,7 +48,7 @@ class AuthenticationTicket(ProxmoxBaseModel):
 
 class AuthenticationTicketResponse(ProxmoxBaseModel):
     username: str
-    CSRFPrevisionToken: Optional[str] = None
+    csrf_token: Optional[str] = Field(None, alias="CSRFPreventionToken")
     clustername: Optional[str] = None
     ticket: Optional[str] = None
 
