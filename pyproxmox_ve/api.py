@@ -234,7 +234,7 @@ class ProxmoxVEAPI:
         if not r.ok:
             if self.raise_exceptions:
                 errors = None
-                if r.content_length > 13:
+                if r.content_length and r.content_length > 13:
                     # Probably something more interesting than {'data': None}
                     errors = await r.json()
                 raise exceptions.ProxmoxAPIResponseError(

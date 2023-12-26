@@ -3,6 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from pyproxmox_ve.resources.access.domains.domains import AccessDomainsAPI
+from pyproxmox_ve.resources.access.groups.groups import AccessGroupsAPI
+from pyproxmox_ve.resources.access.roles.roles import AccessRolesAPI
+from pyproxmox_ve.resources.access.tfa.tfa import AccessTFAAPI
 from pyproxmox_ve.resources.access.users.users import AccessUsersAPI
 
 if TYPE_CHECKING:
@@ -15,6 +18,9 @@ class AccessAPI:
         self.api = api
         self.users = AccessUsersAPI(api)
         self.domains = AccessDomainsAPI(api)
+        self.groups = AccessGroupsAPI(api)
+        self.roles = AccessRolesAPI(api)
+        self.tfa = AccessTFAAPI(api)
 
     async def get_acls(self) -> list[ACL | dict]:
         """Get all ACLs."""

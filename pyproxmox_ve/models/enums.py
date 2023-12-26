@@ -15,8 +15,13 @@ class AccessACLEnum(str, Enum):
 
 
 class TFAEnum(str, Enum):
+    totp = "totp"
+    u2f = "u2f"
     yubico = "yubico"
     oauth = "oauth"
+    webauthn = "webauthn"
+    recovery = "recovery"
+    incompatible = "incompatible"
 
 
 class DomainTypeEnum(str, Enum):
@@ -38,3 +43,9 @@ class SSLVersionEnum(str, Enum):
     tlsv1_1 = "tlsv1_1"
     tlsv1_2 = "tlsv1_2"
     tlsv1_3 = "tlsv1_3"
+
+
+class SyncScopeEnum(str, Enum):
+    users = "users"
+    groups = "groups"
+    both = "both"
