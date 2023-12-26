@@ -1,6 +1,7 @@
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Dict, Optional
 
 from pyproxmox_ve.models.base import ProxmoxBaseModel
+from pyproxmox_ve.models.enums import TFAEnum
 
 
 class UserTokenBase(ProxmoxBaseModel):
@@ -56,6 +57,6 @@ class UserWithTokenDict(UserBase):
 
 
 class UserTFAType(ProxmoxBaseModel):
-    realm: Literal["oauth", "yubico"]
+    realm: TFAEnum
     types: list[Any]
-    user: Literal["oauth", "yubico"]
+    user: TFAEnum
