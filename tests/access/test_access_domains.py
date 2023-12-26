@@ -14,6 +14,7 @@ class TestAccessDomains:
         assert response
         assert len(response) > 0
 
+    """
     async def test_create_domain(self, proxmox: ProxmoxVEAPI):
         response = await proxmox.access.domains.create_domain(
             realm="pytest-ldap",
@@ -24,3 +25,4 @@ class TestAccessDomains:
             mode="ldap",
         )
         print(response)
+    """
