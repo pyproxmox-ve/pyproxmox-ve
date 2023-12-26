@@ -305,8 +305,10 @@ class ProxmoxVEAPI:
     async def query(
         self,
         endpoint: str,
+        method: str,
         data_key: str = "data",
         module_model: tuple[str, str] = None,
+        params: dict = None,
         **kwargs,
     ) -> ProxmoxBaseModel | dict | None:
         """Basic function to return the JSON directly from any HTTP operation. As of PVE v8.1, most if not all GET
@@ -318,14 +320,19 @@ class ProxmoxVEAPI:
             data_key:       This is used to extract the relevant data directly from the ClientResponse body
             module_model:   Path to module and model to dynamically load if using Pydantic library
         """
-        data = await self.http_request(endpoint=endpoint, data_key=data_key, **kwargs)
+        if params:
+            params = self._build_params(**params)
+
+        data = await self.http_request(
+            endpoint=endpoint, method=method, data_key=data_key, params=params, **kwargs
+        )
 
         # Most PVE endpoints return null if it doesn't exist, so this logic should be handled by each function
         # if its expecting some returned data.
         if not data:
             return None
 
-        if self.use_pydantic:
+        if self.use_pydantic and module_model:
             pydantic_model = self._get_pydantic_model(*module_model)
             data = self._model_validate(obj_in=data, model=pydantic_model)
 

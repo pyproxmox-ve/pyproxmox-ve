@@ -7,6 +7,7 @@ from pyproxmox_ve import ProxmoxVEAPI
 
 
 @pytest.mark.asyncio
+@pytest.mark.order(before="test_users.py::TestAccessUsers::test_delete_user")
 class TestAccessUsersToken:
     async def test_get_user_tokens_not_exist(self, proxmox: ProxmoxVEAPI):
         user_tokens = await proxmox.access.users.get_user_tokens(
