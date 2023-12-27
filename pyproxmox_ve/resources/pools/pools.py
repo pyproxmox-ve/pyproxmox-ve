@@ -60,4 +60,4 @@ class PoolsAPI:
         Args:
             pool_id:    Name of the pool
         """
-        return await self.api.delete(endpoint="/pools", params={"poolid": pool_id})
+        return await self.api.delete(endpoint="/pools/", params={"poolid": pool_id})

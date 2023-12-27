@@ -20,7 +20,13 @@ if TYPE_CHECKING:
 
 from pyproxmox_ve import exceptions
 from pyproxmox_ve.auth import PVEAPITokenAuth
-from pyproxmox_ve.resources import AccessAPI, PoolsAPI, StorageAPI, VersionAPI
+from pyproxmox_ve.resources import (
+    AccessAPI,
+    ClusterAPI,
+    PoolsAPI,
+    StorageAPI,
+    VersionAPI,
+)
 
 SUPPORTED_API_VERSIONS = ["api2"]
 SUPPORTED_API_TYPES = ["json"]
@@ -146,6 +152,7 @@ class ProxmoxVEAPI:
 
         # APIs
         self.access = AccessAPI(self)
+        self.cluster = ClusterAPI(self)
         self.pools = PoolsAPI(self)
         self.storage = StorageAPI(self)
         self.version = VersionAPI(self)
@@ -198,6 +205,7 @@ class ProxmoxVEAPI:
         data: dict = None,
         data_key: str = "",
         headers: dict = None,
+        params: dict = None,
         **kwargs,
     ) -> dict | None:
         """aiohttp request shorthand function to handle simple logic.
@@ -209,6 +217,9 @@ class ProxmoxVEAPI:
         """
         if headers is None:
             headers = {}
+
+        if params:
+            params = self._build_params(**params)
 
         ctx = None
         match method.upper():
@@ -231,6 +242,7 @@ class ProxmoxVEAPI:
             url=f"/{self.api_version}/{self.api_type}" + endpoint,
             data=data,
             headers=headers,
+            params=params,
             **kwargs,
         )
         if not r.ok:
@@ -370,7 +382,6 @@ class ProxmoxVEAPI:
         method: str,
         data_key: str = "data",
         module_model: tuple[str, str] = None,
-        params: dict = None,
         **kwargs,
     ) -> ProxmoxBaseModel | dict | None:
         """Basic function to return the JSON directly from any HTTP operation. As of PVE v8.1, most if not all GET
@@ -382,11 +393,8 @@ class ProxmoxVEAPI:
             data_key:       This is used to extract the relevant data directly from the ClientResponse body
             module_model:   Path to module and model to dynamically load if using Pydantic library
         """
-        if params:
-            params = self._build_params(**params)
-
         data = await self.http_request(
-            endpoint=endpoint, method=method, data_key=data_key, params=params, **kwargs
+            endpoint=endpoint, method=method, data_key=data_key, **kwargs
         )
 
         # Most PVE endpoints return null if it doesn't exist, so this logic should be handled by each function
@@ -441,6 +449,8 @@ class ProxmoxVEAPI:
             elif isinstance(v, str):
                 # this is here for future implementation :) this obviously needs work since str(v) is just pointless
                 params[k] = str(v)
+            else:
+                params[k] = v
 
         return params
 
