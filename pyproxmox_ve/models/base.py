@@ -9,10 +9,7 @@ def normalize_keys(string: str) -> str:
 
 class ProxmoxBaseModel(BaseModel):
     model_config = ConfigDict(
-        populate_by_name=True,
-        alias_generator=normalize_keys,
-        use_enum_values=True,
-        json_encoders={bool: int},
+        populate_by_name=True, alias_generator=normalize_keys, use_enum_values=True
     )
 
 
