@@ -14,3 +14,12 @@
 | /access/users/{userid}/token/{tokenid} | POST | create_user_token | Create a new API token for an existing API User |
 | /access/users/{userid}/token/{tokenid} | PUT | update_user_token | Update a specific API User's Token |
 | /access/users/{userid}/token/{tokenid} | DELETE | delete_user_token | Delete a specific API User's Token |
+
+# Pools Resources
+
+|  Endpoint | Method | Method Name | Purpose |
+| --------- | ------ | ----------- | ------- |
+| /pools | GET | get_pools | List pools or get pool configuration |
+| /pools | POST | create_pool | Create a new pool |
+| /pools | PUT | update_pool | Update an existing pool |
+| /pools | DELETE | delete_pool | Delete an existing pool |
