@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 from pyproxmox_ve import exceptions
 from pyproxmox_ve.auth import PVEAPITokenAuth
-from pyproxmox_ve.resources import AccessAPI, VersionAPI
+from pyproxmox_ve.resources import AccessAPI, PoolsAPI, VersionAPI
 
 SUPPORTED_API_VERSIONS = ["api2"]
 SUPPORTED_API_TYPES = ["json"]
@@ -146,6 +146,7 @@ class ProxmoxVEAPI:
 
         # APIs
         self.access = AccessAPI(self)
+        self.pools = PoolsAPI(self)
         self.version = VersionAPI(self)
 
     async def __aenter__(self) -> ProxmoxVEAPI:
