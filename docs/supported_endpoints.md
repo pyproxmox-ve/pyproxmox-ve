@@ -23,3 +23,13 @@
 | /pools | POST | create_pool | Create a new pool |
 | /pools | PUT | update_pool | Update an existing pool |
 | /pools | DELETE | delete_pool | Delete an existing pool |
+
+# Storage Resources
+
+|  Endpoint | Method | Method Name | Purpose |
+| --------- | ------ | ----------- | ------- |
+| /storage | GET | get_storages | List all storage indexes |
+| /storage | POST | create_storage | Create a new storage index |
+| /storage/{storage} | GET | get_storage | Get a specific storage index |
+| /storage/{storage} | PUT | update_storage | Update a specific storage index |
+| /storage/{storage} | DELETE | delete_storage | Delete a specific storage index |

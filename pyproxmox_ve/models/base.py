@@ -1,4 +1,6 @@
 from pydantic import BaseModel, ConfigDict
+from pydantic.functional_serializers import PlainSerializer
+from typing_extensions import Annotated
 
 
 def normalize_keys(string: str) -> str:
@@ -10,6 +12,7 @@ class ProxmoxBaseModel(BaseModel):
         populate_by_name=True,
         alias_generator=normalize_keys,
         use_enum_values=True,
+        json_encoders={bool: int},
     )
 
 
@@ -20,3 +23,6 @@ class ProxmoxBaseModelWithoutAlias(BaseModel):
         populate_by_name=True,
         use_enum_values=True,
     )
+
+
+BoolInt = Annotated[bool, PlainSerializer(lambda x: int(x), return_type=int)]
